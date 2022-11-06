@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skeniraj barkod</title>
+    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='scanqr_style.css') }}"
+    />
+    <script>
+      let code = "";
+      let reading = false;
+
+      function detectScannerInput() {
+        let user_id = code;
+
+        if (code.length > 9) {
+          Swal.fire({
+                title: "Greška!",
+                text: "Uneseno je previše brojki! Provjerite unos i pokušajte ponovno!",
+                imageUrl: "{{ url_for('static', filename='problem.png') }}",
+                imageWidth: 300,
+                imageHeight: 300,
+              });
+              setTimeout(() => {
+                window.location.href = "http://localhost:8080/scanqr";
+              }, 2000);
+        }
+
+        fetch(`http://localhost:8080/check_validity/${user_id}`)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            if (data.length == 0) {
+              Swal.fire({
+                title: "Greška!",
+                text: "Korisnik s ovim kodom ne postoji! Provjerite unos i pokušajte ponovno!",
+                imageUrl: "{{ url_for('static', filename='problem.png') }}",
+                imageWidth: 300,
+                imageHeight: 300,
+              });
+              setTimeout(() => {
+                window.location.href = "http://localhost:8080/scanqr";
+              }, 2000);
+            } else {
+              presentData(user_id);
+            }
+          });
+      }
+
+      function presentData(user_id) {
+        document.getElementsByTagName("form")[0].style.display = "";
+        document.getElementById("placeholder").style.display = "none";
+        document.getElementById("wait-title").style.display = "none";
+        fetch(`http://localhost:8080/users/${user_id}`)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            let temporary = document.createElement("h1");
+            temporary.id = "user-info";
+            temporary.style.fontSize = "200px";
+
+            JsBarcode("#barcode-image", user_id, {
+              width: 4,
+              height: 80,
+            });
+
+            JsBarcode("#barcode", user_id, {
+              width: 15,
+              height: 500,
+              fontSize: 150,
+            });
+
+            temporary.innerHTML =
+              data[0].first_name +
+              "<br>" +
+              data[0].last_name +
+              "<br>" +
+              data[0].title;
+
+            let temp_name = document.createElement("h1");
+            let temp_surname = document.createElement("h1");
+            let temp_title = document.createElement("h1");
+
+            temp_name.innerHTML = data[0].first_name;
+            temp_surname.innerHTML = data[0].last_name;
+            temp_title.innerHTML = data[0].title;
+
+            document.getElementById("name").appendChild(temp_name);
+            document.getElementById("surname").appendChild(temp_surname);
+            document.getElementById("title").appendChild(temp_title);
+
+            document.getElementById("printing-helper").appendChild(temporary);
+          })
+          .catch(function (err) {
+            console.warn("Something went wrong!", err);
+          });
+
+        fetch(`http://localhost:8080/check_arrival/${user_id}`)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            if (data[0].arrival != "NE") {
+              Swal.fire({
+                title: "Greška!",
+                text: "Korisnik s ovim kodom je već skeniran!",
+                imageUrl: "{{ url_for('static', filename='problem.png') }}",
+                imageWidth: 500,
+                imageHeight: 500,
+              });
+            } else {
+              fetch(`http://localhost:8080/change_status/${user_id}`).then(
+                function (response) {
+                  return response.json();
+                }
+              );
+            }
+          });
+      }
+
+      document.addEventListener("keyup", (event) => {
+        if (event.key === "Enter") {
+          detectScannerInput();
+        } else {
+          if (isFinite(event.key)) {
+            code += event.key;
+            document.getElementById("placeholder").innerHTML = code;
+          }
+        }
+      });
+
+      function startPrinting() {
+        document.getElementById("printing-helper").style.display = "block";
+        printJS("printing-helper", "html");
+        document.getElementById("printing-helper").style.display = "none";
+        setTimeout(() => {
+          window.location.href = "http://localhost:8080";
+        }, 1000);
+      }
+    </script>
+  </head>
+  <body>
+    <video autoplay muted loop>
+      <source
+        src="{{ url_for('static', filename='background.mp4') }}"
+        type="video/mp4"
+      />
+    </video>
+    <div id="printing-helper" style="display: none">
+      <svg id="barcode"></svg>
+    </div>
+    <div class="sign">
+      <span class="fast-flicker">Skeniranje barkoda</span><br />
+    </div>
+
+    <div class="login-box">
+      <h1 id="wait-title">Skenirajte ili unesite kod:</h1><br><br>
+      <h1 id="placeholder"></h1>
+      <form style="display: none">
+        <div class="user-box" id="name"><label>Ime</label><br /><br /></div>
+        <div class="user-box" id="surname">
+          <label>Prezime</label><br /><br />
+        </div>
+        <div class="user-box" id="title">
+          <label>Vrsta karte</label><br /><br />
+        </div>
+        <div class="user-box" id="code">
+          <label>Kod</label><br />
+          <svg id="barcode-image"></svg>
+        </div>
+        <a href="#" onclick="startPrinting()">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          Print
+        </a>
+      </form>
+    </div>
+    <a href="http://localhost:8080">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      Povratak
+    </a>
+  </body>
+</html>

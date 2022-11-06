@@ -1,0 +1,21 @@
+version: '3'
+services:
+  qr_scanner_app:
+    container_name: qrscanner_app
+    build:
+      context: .
+    ports:
+      - '8080:8080'
+    volumes:
+      - .:/app
+    tty: true
+    environment:
+      DB_HOST: 'postgres://moxpgtli:cKGW7RmJsP6H7SbTOADebBUXMNUpEBvT@tyke.db.elephantsql.com/moxpgtli'
+      DB_USER: 'moxpgtli'
+      DB_PASSWORD: 'cKGW7RmJsP6H7SbTOADebBUXMNUpEBvT'
+      DB_DATABASE: 'moxpgtli'
+      MAIL_PASSWORD: 'qqeniqrruypuofvj'
+      
+volumes:
+  database:
+

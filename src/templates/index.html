@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoScan</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Sacramento:400"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+  </head>
+  <body>
+    <video autoplay muted loop>
+      <source
+        src="{{ url_for('static', filename='background.mp4') }}"
+        type="video/mp4"
+      />
+    </video>
+    <div id="image-container">
+      <img src="{{ url_for('static', filename='add_new_user.png') }}" >
+      <div id="image-title">
+        <img id="scan-image" src="{{ url_for('static', filename='NeoScan.png') }}">
+        <div class="sign" id="title">
+          <span class="fast-flicker">NEO</span><span class="flicker">SCAN</span>
+        </div>
+      </div>
+      
+      <img src="{{ url_for('static', filename='list_users.png') }}">
+    </div>
+    <div class="container">
+      <a href="/new_user">
+        <div class="sign">
+          <span class="fast-flicker">Kr</span><span class="flicker">ei</span><span class="fast-flicker">raj  </span><span class="flicker">no</span><span class="fast-flicker">v</span><span class="flicker">og</span><br />
+          <span class="fast-flicker">kori</span><span class="flicker">sn</span><span class="fast-flicker">i</span><span class="flicker">k</span><span class="fast-flicker">a</span>
+        </div>
+      </a>
+      <a href="/scanqr">
+        <div id="scan-code" class="sign">
+          <span class="fast-flicker">Ske</span><span class="flicker">ni</span><span class="fast-flicker">ra</span><span class="flicker">j</span><br />
+          <span class="flicker">bar</span><span class="fast-flicker">kod</span>
+        </div>
+      </a>
+      <a href="/user_list">
+        <div class="sign">
+          <span class="flicker">Pr<span><span class="fast-flicker">e</span><span class="flicker">gl</span><span class="fast-flicker">ed</span><br />
+          <span class="fast-flicker">ko</span><span class="flicker">ris</span><span class="fast-flicker">n</span><span class="flicker">ika</span>
+        </div>
+      </a>
+    </div>
+
+    <div>
+    </div>
+  </body>
+</html>

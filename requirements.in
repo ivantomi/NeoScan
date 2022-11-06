@@ -1,0 +1,12 @@
+flask
+opencv-python-headless
+gunicorn
+flask-cors
+Pillow
+qrcode
+weasyprint
+psycopg2-binary
+libusb
+python-escpos
+python-barcode
+yagmail

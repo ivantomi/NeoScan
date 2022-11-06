@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Svi korisnici</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='user_list_style.css') }}"
+    />
+    <script>
+      var number_of_users = 0;
+      var stat_helper = 0;
+      var counter = 0;
+      buildTable();
+      function buildTable() {
+
+      fetch("http://localhost:8080/users")
+        .then(function (response) {
+          console.log("poziv")
+          return response.json();
+        })
+        .then(function (data) {
+          if (data.length != 0) {
+            var col = [];
+            for (var i = 0; i < data.length; i++) {
+              for (var key in data[i]) {
+                if (col.indexOf(key) === -1) {
+                  col.push(key);
+                }
+              }
+            }
+
+            number_of_users = data.length;
+
+            var table = document.createElement("table");
+            table.id = "table";
+            tr = table.insertRow(-1);
+
+            for (var i = 0; i < col.length; i++) {
+              th = document.createElement("th");
+              if (i === 0) {
+                th.innerHTML =
+                  "<button type='button' class='btn' id='statButton' onclick='showStatistics();'><img src='{{ url_for('static', filename='stat.png') }}'></button>";
+              } else th.innerHTML = col[i];
+              tr.appendChild(th);
+            }
+
+            for (var i = 0; i < data.length; i++) {
+              tr = table.insertRow(-1);
+
+              for (var j = -1; j < col.length; j++) {
+                var tabCell = tr.insertCell(-1);
+                if (j == -1) {
+                  tabCell.innerHTML =
+                    "<button type='button' class='btn'id='settingsButton' onclick='showUserData(this);' ><img src='{{ url_for('static', filename='settings.png') }}'></button>";
+                } else if (j == col.length - 1) {
+                  tabCell.innerHTML = data[i][col[j]];
+                  tabCell.id = "user_id";
+                  tabCell.style.display = "none";
+                } else if (j == col.length - 2) {
+                  tabCell.innerHTML = data[i][col[j]];
+                  tabCell.id = "ticket_type";
+                } else tabCell.innerHTML = data[i][col[j]];
+              }
+            }
+
+            for (var i = 0; i < data.length; i++) {
+              if (data[i][col[0]] == "DA") {
+                counter++;
+              }
+            }
+
+            var divContainer = document.getElementById("showData");
+            divContainer.innerHTML = "";
+            divContainer.appendChild(table);
+
+            document.getElementsByTagName("th")[1].textContent = "Dolazak";
+            document.getElementsByTagName("th")[2].textContent = "Email";
+            document.getElementsByTagName("th")[3].textContent = "Ime";
+            document.getElementsByTagName("th")[4].textContent = "Prezime";
+            document.getElementsByTagName("th")[5].textContent = "Vrsta karte";
+          } else {
+            Swal.fire("Nema korisnika!", "", "info");
+          }
+
+          var modal = document.getElementById("modal");
+          var arrivals = document.createElement("p");
+          var modal_body = document.getElementsByClassName("modal-body")[0];
+          modal_body.appendChild(arrivals);
+          arrivals.innerHTML =
+            "Broj skeniranih korisnika: <br>" + counter + " / " + data.length;
+
+          var list = [];
+          var ticket_type = [
+            "ucenik",
+            "student",
+            "profesor",
+            "predavac",
+            "posjetitelj",
+          ];
+          for (var i = 0; i < data.length; i++) {
+            list[i] = data[i][col[4]];
+          }
+          const counts = {};
+
+          for (const num of list) {
+            counts[num] = counts[num] ? counts[num] + 1 : 1;
+          }
+          var br_ucenika = counts["ucenik"];
+          var br_studenata = counts["student"];
+          var br_profesora = counts["profesor"];
+          var br_predavaca = counts["predavac"];
+          var br_posjetitelja = counts["posjetitelj"];
+
+          stat_table = document.createElement("table");
+          stat_table.id = "stat_table";
+          stat_table.style.width = "100%";
+          tr = stat_table.insertRow(-1);
+
+          for (var i = 0; i < ticket_type.length; i++) {
+            tabCell = tr.insertCell(-1);
+            tabCell.innerHTML = ticket_type[i];
+          }
+          tr = stat_table.insertRow(-1);
+
+          var number_list = [
+            br_ucenika,
+            br_studenata,
+            br_profesora,
+            br_predavaca,
+            br_posjetitelja,
+          ];
+
+          for (var i = 0; i < number_list.length; i++) {
+            tabCell = tr.insertCell(-1);
+            if (number_list[i] == undefined) number_list[i] = 0;
+            tabCell.innerHTML = number_list[i];
+          }
+          modal_body.appendChild(stat_table);
+        });
+
+      }
+        var check_variable = 0;
+
+        function showUserData(index) {
+          box = document.getElementById("user-data-container");
+          var name = document.createElement("p");
+          var surname = document.createElement("p");
+          var title = document.createElement("p");
+          var arrival = document.createElement("p");
+          var email = document.createElement("p");
+          var id = document.createElement("p");
+
+          var number = index.parentNode.parentNode.childNodes[6].innerHTML;
+
+        var image = document.createElement("div");
+        image.innerHTML = "<img src='{{ url_for('static', filename='person.png') }}'>"
+
+
+        edit_button_container = document.createElement("div");
+        delete_button_container = document.createElement("div");
+        email_button_container = document.createElement("div");
+
+        edit_button_container.innerHTML = "<button type='button' class='btn' id='edit-button' onclick='editUser(this);'><img src='{{ url_for('static', filename='edit.png') }}'></button> <button style='display:none' type='button' class='btn' id='save-button' onclick='saveUser(this);'><img src='{{ url_for('static', filename='save.png') }}'></button>"
+        delete_button_container.innerHTML = "<button type='button' class='btn' id='delete_button' onclick='confirmDelete(this);'><img src='{{ url_for('static', filename='trash.png') }}'></button>"
+        email_button_container.innerHTML = "<button type='button' class='btn' id='edit-button' onclick='sendEmail(this);'><img src='{{ url_for('static', filename='mail.png') }}'></button>"
+
+          if (check_variable == 1) {
+            box.style.display = "none"
+            check_variable = 0;
+
+            for (var i = 0; i < 6; i++) {
+              box.childNodes[2 * i + 1].removeChild(box.childNodes[2 * i + 1].childNodes[1])
+            }
+            document.getElementById("user-image").innerHTML = '';
+            document.getElementById("user-buttons").innerHTML = '';
+
+            return
+          }
+          check_variable = 1;
+
+          box.style.display = "block";
+
+          fetch(`http://localhost:8080/data/${number}`)
+        .then(function (response) {
+   
+          return response.json();
+        })
+        .then(function (data) {
+
+          name.innerHTML = data[0].first_name;
+          surname.innerHTML = data[0].last_name;
+          title.innerHTML = data[0].title;
+          email.innerHTML = data[0].email;
+          arrival.innerHTML = data[0].arrival;
+          id.innerHTML =  data[0].id;
+          
+
+          box.childNodes[1].innerText = "Ime: "
+          box.childNodes[1].appendChild(name);
+          box.childNodes[3].innerText = "Prezime: "
+          box.childNodes[3].appendChild(surname);
+          box.childNodes[5].innerText = "Kategorija: "
+          box.childNodes[5].appendChild(title);
+          box.childNodes[7].innerText = "Email: "
+          box.childNodes[7].appendChild(email);
+          box.childNodes[9].innerText = "Dolazak: "
+          box.childNodes[9].appendChild(arrival);
+          box.childNodes[11].innerText = "ID: "
+          box.childNodes[11].appendChild(id);
+
+          console.log(box.childNodes[5].childNodes[1].innerHTML);
+
+        })
+
+
+        document.getElementById("user-image").appendChild(image);
+        document.getElementById("user-buttons").appendChild(edit_button_container);
+        document.getElementById("user-buttons").appendChild(email_button_container);
+        document.getElementById("user-buttons").appendChild(delete_button_container);
+
+
+        }
+
+        function saveUser(index) {
+          document.getElementById("edit-button").style.display = "";
+          document.getElementById("save-button").style.display = "none";
+
+          var first_name = document.getElementById("first_name").value;
+          var last_name = document.getElementById("last_name").value;
+          var title = document.getElementById("title").value;
+          var email = document.getElementById("email").value;
+
+          var values = index.parentNode.parentNode.parentNode;
+          values.childNodes[1].childNodes[1].innerHTML = first_name;
+          values.childNodes[3].childNodes[1].innerHTML = last_name;
+          values.childNodes[5].childNodes[1].innerHTML = title;
+          values.childNodes[7].childNodes[1].innerHTML = email;
+
+          var id = index.parentNode.parentNode.parentNode.childNodes[11].innerHTML;
+          id = id.replace(/[^0-9]/g, '');
+          parseInt(id);
+
+          fetch("http://localhost:8080/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            `"first_name": "${first_name}", "last_name": "${last_name}", "title": "${title}", "email": "${email}", "id": "${id}"`
+          ),
+        })
+          .then(function (response) {
+            if (response.ok) {
+              response.json().then(function (response) {
+                console.log(response);
+              });
+            } else {
+              throw Error("Nešto ne štima");
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+          setTimeout(() => {
+            buildTable();
+          }, "100")
+        }
+
+
+        function editUser(index) {
+          document.getElementById("edit-button").style.display = "none";
+          document.getElementById("save-button").style.display = "";
+
+          var values = index.parentNode.parentNode.parentNode;
+
+          var name = values.childNodes[1].childNodes[1];
+          var surname = values.childNodes[3].childNodes[1];
+          var title = values.childNodes[5].childNodes[1];
+          var email = values.childNodes[7].childNodes[1];
+
+          var email_data = email.innerText;
+          var name_data = name.innerText;
+          var surname_data = surname.innerText;
+          var title_data = title.innerText;
+
+          name.innerHTML =
+          "<input type='text' id='first_name' value='" + name_data + "'>";
+          surname.innerHTML =
+          "<input type='text' id='last_name' value='" + surname_data + "'>";
+          title.innerHTML =
+          "<input type='text' id='title' value='" + title_data + "'>";
+          email.innerHTML =
+          "<input type='text' id='email' value='" + email_data + "'>";
+
+        }
+
+      function showStatistics() {
+        if (stat_helper == 0) {
+          modal.style.display = "block";
+          stat_helper = 1;
+        } else {
+          modal.style.display = "none";
+          stat_helper = 0;
+        }
+      }
+
+      function confirmDelete(index) {
+        Swal.fire({
+          title: "Jeste li sigurni?",
+          showDenyButton: true,
+          confirmButtonText: "Da",
+          denyButtonText: "Ne",
+          color: "#03e9f4",
+          width: "20vw",
+          padding: "0 0 1em",
+          background: "rgba(0,0,0,.5)",
+          customClass: {
+            actions: "my-actions",
+            cancelButton: "order-1 right-gap",
+            confirmButton: "order-2",
+            denyButton: "order-3",
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire("Izbrisano!", "", "success");
+            deleteRow(index);
+          } else if (result.isDenied) {
+            Swal.fire("Nisu napravljene promjene", "", "info");
+            return;
+          }
+        });
+      }
+
+      function sendEmail(index) {
+        var id = index.parentNode.parentNode.parentNode.childNodes[11].innerHTML;
+        id = id.replace(/[^0-9]/g, '');
+        parseInt(id);
+
+        console.log(id)
+
+        var values = index.parentNode.parentNode.parentNode;
+        var first_name = values.childNodes[1].childNodes[1].innerHTML
+        var surname = values.childNodes[3].childNodes[1].innerHTML
+        var title = values.childNodes[5].childNodes[1].innerHTML
+        var email = values.childNodes[7].childNodes[1].innerHTML
+
+        console.log(first_name, surname, title, email)
+
+        fetch("http://localhost:8080/send_email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            `"first_name": "${name}", "last_name": "${surname}", "title": "${title}", "email": "${email}", "id": "${id}"`
+          ),
+        })
+          .then(function (response) {
+            if (response.ok) {
+              response.json().then(function (response) {
+                console.log(response);
+              });
+            } else {
+              throw Error("Nešto ne štima");
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+        Swal.fire({
+          color: "#03e9f4",
+          width: "20vw",
+          padding: "0 0 1em",
+          background: "rgba(0,0,0)",
+          title: "Uspjeh!",
+          text: "Mail je uspješno poslan!",
+          icon: "success",
+        });
+      }
+
+      function deleteRow(index) {
+        var id = index.parentNode.parentNode.parentNode.childNodes[11].innerHTML;
+        id = id.replace(/[^0-9]/g, '');
+        parseInt(id);
+
+        fetch("http://localhost:8080/remove", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(`"id": "${id}"`),
+        })
+          .then(function (response) {
+            if (response.ok) {
+              response.json().then(function (response) {
+                console.log(response);
+              });
+            } else {
+              throw Error("Nešto ne štima");
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+          document.getElementById("user-data-container").style.display = "none";
+          setTimeout(() => {
+            buildTable();
+          }, "100")
+      }
+
+
+      function deleteAll() {
+        Swal.fire({
+          title: "Izbrisati SVE korisnike?",
+          text: "Ova se akcija ne može poništiti!",
+          showDenyButton: true,
+          confirmButtonText: "Da",
+          denyButtonText: "Ne",
+          color: "#03e9f4",
+          width: "20vw",
+          padding: "0 0 1em",
+          background: "rgba(0,0,0,.5)",
+          customClass: {
+            actions: "my-actions",
+            cancelButton: "order-1 right-gap",
+            confirmButton: "order-2",
+            denyButton: "order-3",
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("http://localhost:8080/delete_all_users");
+            Swal.fire({
+              title: "Izbrisano!",
+              icon: "success",
+            });
+            setTimeout(() => {
+              window.location.href = "http://localhost:8080/user_list";
+            }, 2000);
+          } else if (result.isDenied) {
+            Swal.fire({
+              title: "Nisu napravljene promjene",
+              icon: "info",
+            });
+            return;
+          }
+        });
+      }
+
+
+
+      function search() {
+        var input, filter, table, tr, td, i, textValue;
+        input = document.getElementById("search-input");
+        filter = input.value.toUpperCase();
+        table = document.getElementsByTagName("table")[0];
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 1; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td");
+          tr[i].style.display = "none";
+          for (j = 1; j < td.length - 2; j++) {
+            if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+              continue;
+            }
+          }
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <video autoplay muted loop>
+      <source
+        src="{{ url_for('static', filename='background.mp4') }}"
+        type="video/mp4"
+      />
+    </video>
+
+    <div>
+      <input
+        type="text"
+        id="search-input"
+        onkeyup="search()"
+        placeholder="PRETRAGA KORISNIKA"
+      />
+    </div>
+
+    <div class="modal" id="user-data-container" style="padding: 2%; height: 70vh; width: 38vw; color:#03e9f4">
+      <div id="data_name">
+        <p>Ime: </p>
+      </div>
+      <div id="data_last_name">
+        <p>Prezime: </p>
+      </div>
+      <div id="data_title">
+        <p>Kategorija: </p>
+      </div>
+      <div id="data_arrival">
+        <p>Email: </p>
+      </div>
+      <div id="data_email">
+        <p>Dolazak: </p>
+      </div>
+      <div id="data_id">
+        <p>ID: </p>
+      </div>
+      <div id="user-image">
+      </div>
+      <div id="user-buttons">
+
+      </div>
+
+    </div>
+
+    <p id="showData"></p>
+    <a style="text-decoration: none" href="http://localhost:8080">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      Povratak
+    </a>
+
+    <div class="sign">
+      <span class="fast-flicker">Pregled korisnika</span><br />
+    </div>
+
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <div class="sign" style="top: 13%">
+          <span class="fast-flicker">Statistika</span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p id="ucenik"></p>
+        <p id="student"></p>
+        <p id="profesor"></p>
+        <p id="posjetitelj"></p>
+        <p id="predavac"></p>
+      </div>
+    </div>
+  </body>
+</html>
