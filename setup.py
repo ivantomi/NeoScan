@@ -5,7 +5,7 @@ setup(
     version="1.0.0",
     url="",
     author="ivan.tomic",
-    author_email="ivan.luka.1234@gmail.com",
+    author_email="",
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
